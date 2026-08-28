@@ -234,16 +234,18 @@ class ModuleRepairProblem(SearchProblem):
         """
         Returns True if the robot reached C after picking up M.
         """
-        # TODO: Add your code here
-        utils.raiseNotDefined()
+        position, hasModule = state
+        return position == self.controlPosition and hasModule
 
     def _getStepCost(self, nextPosition, hasModule):
         """
         Returns the movement cost for entering nextPosition.
 
         """
-        # TODO: Add your code here
-        utils.raiseNotDefined()
+        baseCost = self.startingMissionState.getTerrainCost(nextPosition[0], nextPosition[1])
+        if hasModule:
+            return 2 * baseCost
+        return baseCost
 
     def getSuccessors(self, state):
         """
@@ -268,7 +270,24 @@ class ModuleRepairProblem(SearchProblem):
 
         successors = []
         self._expanded += 1
-        # TODO: Add your code here
+
+        position, hasModule = state
+
+        for direction in [
+            Directions.NORTH,
+            Directions.SOUTH,
+            Directions.EAST,
+            Directions.WEST,
+        ]:
+            x, y = position
+            dx, dy = Actions.directionToVector(direction)
+            nextx, nexty = int(x + dx), int(y + dy)
+
+            if not self.walls[nextx][nexty]:
+                nextPosition = (nextx, nexty)
+                stepCost = self._getStepCost(nextPosition, hasModule)
+                nextHasModule = hasModule or nextPosition == self.modulePosition
+                successors.append(((nextPosition, nextHasModule), direction, stepCost))
 
         return successors
 
