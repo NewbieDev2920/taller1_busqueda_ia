@@ -90,28 +90,50 @@ def uniformCostSearch(problem: SearchProblem):
 
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
-    visited = set()
     queue = utils.PriorityQueue()
-    queue.push([problem.getStartState(),[],0],0)
-    
+
+    start = problem.getStartState()
+
+    queue.push(
+        [start, [], 0],
+        heuristic(start, problem)
+    )
+
+    best_cost = {start: 0}
+
     while not queue.isEmpty():
-        tupla = queue.pop()
-        state = tupla[0]
-        action_seq = tupla[1]
-        cost = tupla[2]
-        
+        state, actions, cost = queue.pop()
+
+        if cost > best_cost.get(state, float("inf")):
+            continue
+
         if problem.isGoalState(state):
-            return action_seq
-            
-        if state not in visited:
-            visited.add(state)
-            
-        for tripla in problem.getSuccessors(state):
-            next_state = tripla[0]
-            action = tripla[1]
-            next_cost = tripla[2]
-            if next_state not in visited:
-                queue.push([next_state, action_seq + [action], cost + next_cost], cost + next_cost)
+            return actions
+
+        for next_state, action, step_cost in problem.getSuccessors(state):
+
+            new_cost = cost + step_cost
+
+            if (
+                next_state not in best_cost
+                or new_cost < best_cost[next_state]
+            ):
+                best_cost[next_state] = new_cost
+
+                priority = (
+                    new_cost
+                    + heuristic(next_state, problem)
+                )
+
+                queue.push(
+                    [
+                        next_state,
+                        actions + [action],
+                        new_cost
+                    ],
+                    priority
+                )
+
     return []
 
 
